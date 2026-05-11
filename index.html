@@ -3,62 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WEBSTER NODE V1.1 // JUBILEE</title>
+    <title>WEBSTER NODE V1.2 // GENESIS HARDENING</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-black text-green-500 font-mono p-6 select-none">
-    <header class="border-b border-green-500 pb-2 mb-6 flex justify-between items-end">
+<body class="bg-black text-green-500 font-mono p-4 select-none">
+    <header class="border-b-2 border-green-500 pb-2 mb-4 flex justify-between items-center">
         <div>
-            <h1 class="text-xl font-bold uppercase tracking-widest">Webster Node V1.1</h1>
-            <p class="text-[10px] text-green-800 italic">RRR PROTOCOL ACTIVE // 1440%</p>
+            <h1 class="text-lg font-bold uppercase tracking-tighter">Webster Node V1.2</h1>
+            <p class="text-[9px] text-green-700 font-bold">MODE: 1440% // TOTALITY EXECUTION</p>
         </div>
-        <div class="text-right">
-            <p class="text-[10px]">GENESIS MISSION DOCKET</p>
-            <p class="text-[10px] font-bold text-white uppercase">DE-FOA-0003612</p>
+        <div class="text-[10px] text-right border-l border-green-900 pl-2">
+            <p>S.J. STADLER</p>
+            <p class="text-white">SYS ARCHITECT</p>
         </div>
     </header>
 
-    <main class="space-y-6">
-        <section class="border border-green-900 p-4 rounded bg-green-950/10">
-            <h2 class="text-xs font-bold border-b border-green-900 mb-3 uppercase tracking-tighter text-white">Standalone PRN Tracking</h2>
-            <div id="prn-status" class="bg-green-900/20 p-3 text-center border border-green-800 mb-3 text-sm">
-                SYSTEM IDLE // AWAITING REQUEST
+    <main class="space-y-4">
+        <section class="border border-green-500 p-3 bg-green-950/20 rounded-sm">
+            <h2 class="text-xs font-bold text-white mb-2 uppercase tracking-widest border-b border-green-900 pb-1">Genesis Grant Ledger (DE-FOA-0003612)</h2>
+            <div class="grid grid-cols-2 gap-2 text-[10px]">
+                <div class="bg-black p-2 border border-green-900">
+                    <p class="text-green-800">TARGET VALUE</p>
+                    <p class="text-white font-bold">$293,000,000.00</p>
+                </div>
+                <div class="bg-black p-2 border border-green-900">
+                    <p class="text-green-800">AUDIT STATE</p>
+                    <p class="text-green-400 font-bold">ZERO-DRIFT</p>
+                </div>
             </div>
-            <button onclick="startPRN()" class="w-full bg-green-600 text-black font-bold py-3 uppercase text-xs hover:bg-green-400 transition-colors">
-                Request PRN Authorization
-            </button>
+        </section>
+
+        <section class="border border-green-900 p-3 rounded-sm">
+            <h2 class="text-xs font-bold mb-3 uppercase text-green-400">[1] JUBILEE RRR PROTOCOL</h2>
+            <div id="status-display" class="bg-green-900/10 border border-green-800 p-4 mb-3 text-center text-sm font-bold">
+                SYSTEM STANDBY
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="trigger('PRN REQUEST')" class="bg-green-600 text-black text-[10px] font-bold py-3 uppercase">PRN Request</button>
+                <button onclick="trigger('MED PASS')" class="border border-green-600 text-green-600 text-[10px] font-bold py-3 uppercase">Med Pass</button>
+            </div>
         </section>
 
         <section class="grid grid-cols-3 gap-2">
-            <div class="border border-green-900 p-2 text-center">
-                <p class="text-[8px] uppercase">Lakeside</p>
-                <p class="text-xs font-bold text-white">SYNCED</p>
+            <div class="border border-green-900 p-2 text-center bg-green-900/5">
+                <p class="text-[7px] uppercase">Lakeside</p>
+                <p class="text-[10px] text-white">LOCKED</p>
             </div>
-            <div class="border border-green-900 p-2 text-center">
-                <p class="text-[8px] uppercase">Kapes</p>
-                <p class="text-xs font-bold text-white">SYNCED</p>
+            <div class="border border-green-900 p-2 text-center bg-green-900/5">
+                <p class="text-[7px] uppercase">Kapes</p>
+                <p class="text-[10px] text-white">LOCKED</p>
             </div>
-            <div class="border border-green-900 p-2 text-center">
-                <p class="text-[8px] uppercase">Countryside</p>
-                <p class="text-xs font-bold text-white">SYNCED</p>
+            <div class="border border-green-900 p-2 text-center bg-green-900/5">
+                <p class="text-[7px] uppercase">Country</p>
+                <p class="text-[10px] text-white">LOCKED</p>
             </div>
         </section>
 
-        <section class="border border-green-900 p-4 rounded">
-            <h2 class="text-[10px] font-bold mb-2 uppercase">Interruption Shield Status</h2>
-            <div class="w-full bg-green-900/30 h-2 rounded-full overflow-hidden">
+        <footer class="mt-4 pt-2 border-t border-green-900">
+            <div class="flex justify-between text-[8px] uppercase tracking-widest text-green-800">
+                <span>DHS 88.06 Compliance</span>
+                <span>HMAC-Chained</span>
+            </div>
+            <div class="w-full bg-green-900/20 h-1 mt-1">
                 <div class="bg-green-500 h-full w-[100%] animate-pulse"></div>
             </div>
-            <p class="text-[9px] mt-2 text-green-700 italic">"Three-Second Look" physical coupling enforced.</p>
-        </section>
+        </footer>
     </main>
 
     <script>
-        function startPRN() {
-            const status = document.getElementById('prn-status');
-            status.innerHTML = "PRN ISSUED // LOCKOUT ACTIVE (4h 00m)";
-            status.classList.add('text-red-500', 'border-red-900', 'bg-red-900/10');
-            alert("JUBILEE PROTOCOL: PRN sequence initiated. Ensure HMAC-linked documentation is completed immediately.");
+        function trigger(type) {
+            const display = document.getElementById('status-display');
+            display.innerText = type + " INITIALIZED";
+            display.classList.add('animate-pulse', 'text-white');
+            setTimeout(() => {
+                display.innerText = type + " // ENCRYPTING LEDGER";
+                setTimeout(() => {
+                    display.innerText = "ZERO-DRIFT VERIFIED";
+                    display.classList.remove('animate-pulse');
+                }, 1500);
+            }, 1000);
         }
     </script>
 </body>
