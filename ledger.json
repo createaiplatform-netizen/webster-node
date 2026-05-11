@@ -1,0 +1,9 @@
+{
+  "system_status": "1440%",
+  "facility_sync": {
+    "Lakeside": "ACTIVE",
+    "Kapes": "ACTIVE",
+    "Countryside": "ACTIVE"
+  },
+  "audit_log": []
+}
