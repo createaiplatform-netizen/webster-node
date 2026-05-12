@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WEBSTER NODE V1.5 - READY FOR SYNC</title>
+    <title>WEBSTER NODE V1.7 - LOCAL LEDGER</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-green-500 font-mono p-4">
     <header class="border-b border-green-800 pb-2 mb-6 flex justify-between items-center">
         <div>
-            <h1 class="text-white font-bold uppercase tracking-tight">Webster Node V1.5</h1>
-            <p class="text-[9px] text-green-700 uppercase font-bold">Waiting for Ledger Bridge</p>
+            <h1 class="text-white font-bold uppercase tracking-tight">Webster Node V1.7</h1>
+            <p class="text-[9px] text-green-700 uppercase font-bold">Offline Sovereign Mode</p>
         </div>
-        <div class="text-[10px] text-white">READY</div>
     </header>
 
     <main class="space-y-4">
@@ -30,24 +29,52 @@
             </select>
         </section>
 
-        <button id="submitBtn" onclick="sendToSheet()" class="w-full bg-green-600 text-black py-5 font-bold uppercase text-xs active:bg-white transition-all shadow-lg">
-            Execute Handshake
+        <button onclick="addHandshake()" class="w-full bg-green-600 text-black py-5 font-bold uppercase text-xs active:bg-white shadow-lg">
+            Record Handshake
         </button>
 
-        <div id="status" class="text-[10px] text-center mt-4 h-4 uppercase tracking-tighter"></div>
+        <button onclick="downloadLedger()" class="w-full border border-green-800 text-green-500 py-3 font-bold uppercase text-[10px] hover:bg-green-900/20">
+            Download Shift Ledger (.TXT)
+        </button>
+
+        <div id="status" class="text-[10px] text-center mt-4 uppercase tracking-tighter text-white"></div>
+        
+        <div id="logDisplay" class="text-[9px] mt-4 space-y-1 opacity-70">
+            </div>
     </main>
 
     <script>
-        // ONCE YOU HAVE THE LINK FROM THE SHEET, YOU PASTE IT BETWEEN THESE QUOTES
-        const scriptURL = 'WAITING_FOR_BRIDGE'; 
+        let sessionLogs = [];
 
-        function sendToSheet() {
-            if (scriptURL === 'WAITING_FOR_BRIDGE') {
-                document.getElementById('status').innerText = "ERROR: BRIDGE NOT CONFIGURED";
-                document.getElementById('status').style.color = "red";
+        function addHandshake() {
+            const res = document.getElementById('res').value;
+            const med = document.getElementById('med').value;
+            const timestamp = new Date().toLocaleString();
+            
+            const entry = `[${timestamp}] RESIDENT: ${res} | MED: ${med} | STATUS: VERIFIED`;
+            sessionLogs.push(entry);
+
+            // Show on screen
+            const logDisplay = document.getElementById('logDisplay');
+            const p = document.createElement('p');
+            p.innerText = entry;
+            logDisplay.prepend(p);
+
+            document.getElementById('status').innerText = "ENTRY ADDED TO LOCAL MEMORY";
+            setTimeout(() => { document.getElementById('status').innerText = ""; }, 3000);
+        }
+
+        function downloadLedger() {
+            if (sessionLogs.length === 0) {
+                alert("No data to download yet.");
                 return;
             }
-            // ... (rest of the handshake logic)
+            const blob = new Blob([sessionLogs.join('\n')], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Webster_Ledger_${new Date().toLocaleDateString()}.txt`;
+            a.click();
         }
     </script>
 </body>
