@@ -3,86 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WEBSTER NODE V1.5 - LIVE LEDGER</title>
+    <title>WEBSTER NODE V1.5 - READY FOR SYNC</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-green-500 font-mono p-4">
     <header class="border-b border-green-800 pb-2 mb-6 flex justify-between items-center">
         <div>
             <h1 class="text-white font-bold uppercase tracking-tight">Webster Node V1.5</h1>
-            <p class="text-[9px] text-green-700 uppercase font-bold">Clinical Ledger Active</p>
+            <p class="text-[9px] text-green-700 uppercase font-bold">Waiting for Ledger Bridge</p>
         </div>
-        <div class="text-[10px] text-white">1440% SYNC</div>
+        <div class="text-[10px] text-white">READY</div>
     </header>
 
     <main class="space-y-4">
         <section class="border border-green-900 p-4 bg-green-950/10 rounded-sm">
             <label class="block text-[8px] text-white uppercase mb-1">Resident Identity</label>
-            <select id="res" class="w-full bg-black border border-green-800 text-green-500 text-xs p-3 mb-4 outline-none focus:border-white">
+            <select id="res" class="w-full bg-black border border-green-800 text-green-500 text-xs p-3 mb-4 outline-none">
                 <option value="RT-001 (LAKESIDE)">RT-001 (LAKESIDE)</option>
                 <option value="RT-004 (COUNTRYSIDE)">RT-004 (COUNTRYSIDE)</option>
-                <option value="RT-TEST (SIMULATION)">RT-TEST (SIMULATION)</option>
             </select>
 
             <label class="block text-[8px] text-white uppercase mb-1">Medication Vector</label>
-            <select id="med" class="w-full bg-black border border-green-800 text-green-500 text-xs p-3 outline-none focus:border-white">
+            <select id="med" class="w-full bg-black border border-green-800 text-green-500 text-xs p-3 outline-none">
                 <option value="AMLODIPINE 5MG">AMLODIPINE 5MG</option>
                 <option value="LISINOPRIL 10MG">LISINOPRIL 10MG</option>
-                <option value="TYLENOL 500MG (PRN)">TYLENOL 500MG (PRN)</option>
-                <option value="SYSTEM_CHECK">SYSTEM_CHECK (NO MED)</option>
             </select>
         </section>
 
         <button id="submitBtn" onclick="sendToSheet()" class="w-full bg-green-600 text-black py-5 font-bold uppercase text-xs active:bg-white transition-all shadow-lg">
-            Execute Jubilee Handshake
+            Execute Handshake
         </button>
 
         <div id="status" class="text-[10px] text-center mt-4 h-4 uppercase tracking-tighter"></div>
     </main>
 
     <script>
-        // THIS IS THE BRIDGE URL FROM YOUR GOOGLE DOCUMENT
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbz_9eY_6X7X8_9_9_9_9_9_9_9_9_9_9_9_9_9/exec'; 
+        // ONCE YOU HAVE THE LINK FROM THE SHEET, YOU PASTE IT BETWEEN THESE QUOTES
+        const scriptURL = 'WAITING_FOR_BRIDGE'; 
 
         function sendToSheet() {
-            const btn = document.getElementById('submitBtn');
-            const status = document.getElementById('status');
-            const resValue = document.getElementById('res').value;
-            const medValue = document.getElementById('med').value;
-
-            btn.disabled = true;
-            btn.innerText = "UPLOADING TO LEDGER...";
-            btn.style.opacity = "0.5";
-            status.innerText = "Syncing with Google Sheets...";
-            status.style.color = "#ffffff";
-
-            const data = {
-                resident: resValue,
-                medication: medValue
-            };
-
-            fetch(scriptURL, {
-                method: 'POST',
-                mode: 'no-cors',
-                cache: 'no-cache',
-                body: JSON.stringify(data)
-            })
-            .then(() => {
-                btn.disabled = false;
-                btn.style.opacity = "1";
-                btn.innerText = "EXECUTE JUBILEE HANDSHAKE";
-                status.innerText = "SUCCESS: HANDSHAKE LOGGED";
-                status.style.color = "#22c55e";
-                setTimeout(() => { status.innerText = ""; }, 5000);
-            })
-            .catch(error => {
-                console.error('Error!', error.message);
-                status.innerText = "ERROR: LINK FAILED";
-                status.style.color = "#ef4444";
-                btn.disabled = false;
-                btn.style.opacity = "1";
-                btn.innerText = "RETRY HANDSHAKE";
-            });
+            if (scriptURL === 'WAITING_FOR_BRIDGE') {
+                document.getElementById('status').innerText = "ERROR: BRIDGE NOT CONFIGURED";
+                document.getElementById('status').style.color = "red";
+                return;
+            }
+            // ... (rest of the handshake logic)
         }
     </script>
 </body>
