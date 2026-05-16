@@ -1,32 +1,18 @@
 import os
 import requests
-import google.generativeai as genai
 
 def sync():
-    # 1. Setup Gemini with current model
-    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    # 1. Hard-coded Deterministic Payload (The Golden Build State)
+    # This removes the dependency on the Gemini API for this specific sync.
+    payload_str = '{"ledger": [], "status": "1440", "protocol": "Jubilee-v1"}'
 
-    # 2. Generate Deterministic Payload
-    prompt = "Generate a strictly valid JSON object. Keys: 'ledger' (empty array), 'status' (string 1440), 'protocol' (string Jubilee-v1). No prose, just the raw JSON."
-    response = model.generate_content(prompt)
-    
-    # Clean the response to ensure no markdown backticks break the JSON
-    payload_str = response.text.strip()
-    if payload_str.startswith("```"):
-        payload_str = payload_str.split("```")[1]
-        if payload_str.startswith("json"):
-            payload_str = payload_str[4:]
-    payload_str = payload_str.strip()
-
-    # 3. Push to Vercel
+    # 2. Push to Vercel
     url = f"https://api.vercel.com/v1/edge-config/{os.environ['EDGE_CONFIG_ID']}/items"
     headers = {
         "Authorization": f"Bearer {os.environ['VERCEL_TOKEN']}",
         "Content-Type": "application/json"
     }
     
-    # Add teamId if it exists in your secrets
     params = {}
     if os.environ.get("TEAM_ID"):
         params["teamId"] = os.environ["TEAM_ID"]
@@ -42,9 +28,14 @@ def sync():
         ]
     }
     
+    print(f"Initiating push to Edge Config: {os.environ['EDGE_CONFIG_ID']}")
     r = requests.patch(url, headers=headers, json=data, params=params)
+    
     print(f"Operational Status: {r.status_code}")
-    print(f"Response: {r.text}")
+    if r.status_code == 200:
+        print("Success: Webster Node Synchronized.")
+    else:
+        print(f"Error Detail: {r.text}")
 
 if __name__ == "__main__":
     sync()
