@@ -1,0 +1,28 @@
+name: Webster Node Sync
+on:
+  repository_dispatch:
+    types: [manual-trigger]
+  workflow_dispatch: # Allows you to trigger this from your phone manually
+
+jobs:
+  update-edge-config:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: pip install requests google-generativeai
+
+      - name: Run Webster Push Script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          EDGE_CONFIG_ID: ${{ secrets.EDGE_CONFIG_ID }}
+          TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+        run: python webster_sync.py
