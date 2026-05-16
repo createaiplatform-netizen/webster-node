@@ -2,57 +2,30 @@ import { kv } from '@vercel/kv';
 import crypto from 'crypto';
 
 export default async function handler(req, res) {
-    // Only allow POST requests for clinical data entry
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
-    }
-
+    if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
     try {
-        const { type, timestamp, metadata } = req.body;
-
-        // Validation for deterministic entry
-        if (!type || !timestamp) {
-            return res.status(400).json({ error: 'Type and timestamp are required' });
-        }
-
-        // 1. Retrieve the last entry to get the 'previousHash' (The Chain Link)
-        const latestEntry = await kv.get('ledger:latest');
-        const previousHash = latestEntry ? latestEntry.hash : null;
-
-        // 2. Define the secret key from your Vercel Environment Variables
-        // Defaults to 'jubilee-protocol-key' if not set
+        const { type, timestamp } = req.body;
         const secret = process.env.JUBILEE_PROTOCOL_KEY || 'jubilee-protocol-key';
+        
+        // This pulls the last link in the chain from the KV database
+        const latest = await kv.get('ledger:latest').catch(() => null);
+        const previousHash = latest ? latest.hash : null;
 
-        // 3. Construct the event object
-        const currentEvent = { 
-            type, 
-            timestamp, 
-            previousHash,
-            metadata: metadata || {} 
-        };
-
-        // 4. Compute the HMAC Hash (The Secure Seal)
+        const currentEvent = { type, timestamp, previousHash };
         const hmac = crypto.createHmac('sha256', secret);
         hmac.update(JSON.stringify(currentEvent));
-        const currentHash = hmac.digest('hex');
+        const hash = hmac.digest('hex');
 
-        // 5. Build the final record
-        const finalRecord = { ...currentEvent, hash: currentHash };
+        const record = { ...currentEvent, hash };
+        
+        // Permanent Atomic Commit
+        await Promise.all([
+            kv.rpush('ledger:entries', JSON.stringify(record)),
+            kv.set('ledger:latest', record)
+        ]);
 
-        // 6. Save to Vercel KV (Atomic Updates)
-        // 'rpush' adds it to the list; 'set' updates the pointer for the next entry
-        await kv.rpush('ledger:entries', JSON.stringify(finalRecord));
-        await kv.set('ledger:latest', finalRecord);
-
-        // Success Response
-        return res.status(200).json({ 
-            status: 'VERIFIED', 
-            hash: currentHash,
-            message: 'Event appended to permanent ledger.' 
-        });
-
-    } catch (error) {
-        console.error(`Clinical Audit Error: ${error.message}`);
-        return res.status(500).json({ error: 'Internal Server Error - Check KV Connection' });
+        return res.status(200).json({ status: 'VERIFIED', hash });
+    } catch (e) {
+        return res.status(500).json({ error: 'Database Link Pending' });
     }
 }
