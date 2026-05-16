@@ -1,48 +1,58 @@
+import { kv } from '@vercel/kv';
 import crypto from 'crypto';
-import fs from 'fs';
 
 export default async function handler(req, res) {
+    // Only allow POST requests for clinical data entry
     if (req.method !== 'POST') {
-        res.status(405).json({ error: 'Method Not Allowed' });
-        return;
+        return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
     try {
-        const { type, timestamp } = req.body;
+        const { type, timestamp, metadata } = req.body;
 
+        // Validation for deterministic entry
         if (!type || !timestamp) {
-            res.status(400).json({ error: 'Type and timestamp are required' });
-            return;
+            return res.status(400).json({ error: 'Type and timestamp are required' });
         }
 
-        const ledgerPath = '/tmp/ledger.json';
+        // 1. Retrieve the last entry to get the 'previousHash' (The Chain Link)
+        const latestEntry = await kv.get('ledger:latest');
+        const previousHash = latestEntry ? latestEntry.hash : null;
 
-        // Get the previous hash from the ledger
-        const previousHash = fs.existsSync(ledgerPath)
-            ? JSON.parse(fs.readFileSync(ledgerPath, 'utf8')).slice(-1)[0]?.hash
-            : null;
+        // 2. Define the secret key from your Vercel Environment Variables
+        // Defaults to 'jubilee-protocol-key' if not set
+        const secret = process.env.JUBILEE_PROTOCOL_KEY || 'jubilee-protocol-key';
 
-        // Construct the current event
-        const currentEvent = { type, timestamp, previousHash };
-        const currentHash = computeHMACHash(currentEvent);
+        // 3. Construct the event object
+        const currentEvent = { 
+            type, 
+            timestamp, 
+            previousHash,
+            metadata: metadata || {} 
+        };
 
-        // Append the new event with its hash to the ledger
-        const ledgerData = fs.existsSync(ledgerPath) ? JSON.parse(fs.readFileSync(ledgerPath, 'utf8')) : [];
-        ledgerData.push({ ...currentEvent, hash: currentHash });
+        // 4. Compute the HMAC Hash (The Secure Seal)
+        const hmac = crypto.createHmac('sha256', secret);
+        hmac.update(JSON.stringify(currentEvent));
+        const currentHash = hmac.digest('hex');
 
-        // Write to /tmp/ledger.json for serverless environments
-        fs.writeFileSync(ledgerPath, JSON.stringify(ledgerData, null, 2));
+        // 5. Build the final record
+        const finalRecord = { ...currentEvent, hash: currentHash };
 
-        res.status(200).json({ message: 'Event logged successfully', hash: currentHash });
+        // 6. Save to Vercel KV (Atomic Updates)
+        // 'rpush' adds it to the list; 'set' updates the pointer for the next entry
+        await kv.rpush('ledger:entries', JSON.stringify(finalRecord));
+        await kv.set('ledger:latest', finalRecord);
+
+        // Success Response
+        return res.status(200).json({ 
+            status: 'VERIFIED', 
+            hash: currentHash,
+            message: 'Event appended to permanent ledger.' 
+        });
+
     } catch (error) {
-        console.error(`Error logging event: ${error.message}`);
-        res.status(500).json({ error: 'Internal Server Error' });
+        console.error(`Clinical Audit Error: ${error.message}`);
+        return res.status(500).json({ error: 'Internal Server Error - Check KV Connection' });
     }
-}
-
-// Helper function to compute HMAC hash for cryptographic linking
-function computeHMACHash(event, secretKey = 'jubilee-protocol-key') {
-    const hmac = crypto.createHmac('sha256', secretKey);
-    hmac.update(JSON.stringify(event));
-    return hmac.digest('hex');
 }
