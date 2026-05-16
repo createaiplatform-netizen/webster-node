@@ -1,12 +1,26 @@
 import os
 import requests
+import datetime
 
 def sync():
-    # 1. Hard-coded Deterministic Payload (The Golden Build State)
-    # This removes the dependency on the Gemini API for this specific sync.
-    payload_str = '{"ledger": [], "status": "1440", "protocol": "Jubilee-v1"}'
+    # 1. Capture the "Pulse" (Bot Metadata)
+    now = datetime.datetime.utcnow().isoformat()
+    
+    # This is the Bot's active memory state
+    bot_payload = {
+        "identity": "Sara-Agent-v1",
+        "status": "1440",
+        "last_pulse": f"{now}Z",
+        "protocol": "Jubilee-v1",
+        "facilities": {
+            "Lakeside_Trinity": "ACTIVE",
+            "Countryside_Living": "ACTIVE",
+            "Kapes_Lakeside": "STANDBY"
+        },
+        "ledger": ["System Initialized", "Node Synchronized", "Bot Online"]
+    }
 
-    # 2. Push to Vercel
+    # 2. Push to Vercel (The Bot's Memory)
     url = f"https://api.vercel.com/v1/edge-config/{os.environ['EDGE_CONFIG_ID']}/items"
     headers = {
         "Authorization": f"Bearer {os.environ['VERCEL_TOKEN']}",
@@ -17,25 +31,23 @@ def sync():
     if os.environ.get("TEAM_ID"):
         params["teamId"] = os.environ["TEAM_ID"]
 
-    # Upsert the key 'webster_state'
     data = {
         "items": [
             {
                 "operation": "upsert",
                 "key": "webster_state",
-                "value": payload_str
+                "value": bot_payload
             }
         ]
     }
     
-    print(f"Initiating push to Edge Config: {os.environ['EDGE_CONFIG_ID']}")
+    print(f"Bot Pulse Initiated: {now}")
     r = requests.patch(url, headers=headers, json=data, params=params)
     
-    print(f"Operational Status: {r.status_code}")
     if r.status_code == 200:
-        print("Success: Webster Node Synchronized.")
+        print("Success: Bot and Node are now Synchronized.")
     else:
-        print(f"Error Detail: {r.text}")
+        print(f"Sync Failure: {r.text}")
 
 if __name__ == "__main__":
     sync()
